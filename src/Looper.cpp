@@ -9,7 +9,6 @@ Looper* _gLooper = nullptr;
 
 Looper::Looper(bool quitAllowed)
 {
-    printf("Looper()\n");
     mQueue = new MessageQueue(quitAllowed);
 }
 
@@ -17,9 +16,7 @@ void Looper::initTLSKey()
 {
     try
     {
-        printf("Looper::initTLSKey()\n");
-        // int error = pthread_key_create(&_gTLSKey, threadDestructor);
-        // printf("Looper::initTLSKey -> %d", error);
+        int error = pthread_key_create(& _gTLSKey, threadDestructor);
     }
     catch(const std::exception& e)
     {
@@ -42,32 +39,26 @@ void Looper::threadDestructor(void *st) {
 
 void Looper::prepare()
 {
-    printf("Looper::prepare()\n");
-    // int result = pthread_once(&_gTLSOnce, initTLSKey);
-    // pthread_key_t gTLSKey = _gTLSKey;
-    // Looper* temp = (Looper*)pthread_getspecific(gTLSKey);
-    Looper* temp = _gLooper;
+    int result = pthread_once(&_gTLSOnce, initTLSKey);
+    pthread_key_t gTLSKey = _gTLSKey;
+    Looper* temp = (Looper*)pthread_getspecific(gTLSKey);
     if (temp != nullptr)
     {
         return;
     }
-    // pthread_setspecific(gTLSKey, new Looper(true));
-    _gLooper = new Looper(true);
-    printf("Looper::prepare() finish()\n");
+    temp = new Looper(true);
+    pthread_setspecific(gTLSKey, temp);
 }
 
 Looper* Looper::myLooper()
 {
-    printf("myLooper()\n");
-    // pthread_key_t gTLSKey = _gTLSKey;
-    // Looper* temp = (Looper*)pthread_getspecific(gTLSKey);
-    Looper* temp = _gLooper;
+    pthread_key_t gTLSKey = _gTLSKey;
+    Looper* temp = (Looper*)pthread_getspecific(gTLSKey);
     return temp;
 }
 
 void Looper::loop()
 {
-    printf("loop\n");
     Looper* me = myLooper();
     if (me == nullptr) return;
 

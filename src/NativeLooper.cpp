@@ -26,7 +26,6 @@ static pthread_once_t gTLSOnce = PTHREAD_ONCE_INIT;
 static pthread_key_t gTLSKey = 0;
 
 void NativeLooper::initTLSKey() {
-    printf("NativeLooper::initTLSKey()\n");
     int error = pthread_key_create(&gTLSKey, threadDestructor);
     // LOG_ALWAYS_FATAL_IF(error != 0, "Could not allocate TLS key: %s", strerror(error));
 }
@@ -43,7 +42,6 @@ void NativeLooper::threadDestructor(void *st) {
 }
 
 void NativeLooper::setForThread(NativeLooper* looper) {
-    printf("NativeLooper::setForThread()\n");
     NativeLooper* old = getForThread(); // also has side-effect of initializing TLS
 
     // if (looper != nullptr) {
@@ -59,7 +57,6 @@ void NativeLooper::setForThread(NativeLooper* looper) {
 }
 
 NativeLooper* NativeLooper::getForThread() {
-    printf("NativeLooper::getForThread()\n");
     int result = pthread_once(& gTLSOnce, initTLSKey);
     // LOG_ALWAYS_FATAL_IF(result != 0, "pthread_once failed");
 
@@ -82,7 +79,6 @@ NativeLooper* NativeLooper::prepare(int opts) {
 
 int NativeLooper::pollOnce(int timeoutMillis, int* outFd, int* outEvents, void** outData)
 {
-    printf("pollOnce(4)\n");
     int result = 0;
     for (;;)
     {
@@ -91,24 +87,20 @@ int NativeLooper::pollOnce(int timeoutMillis, int* outFd, int* outEvents, void**
             return result;
         }
         result = pollInner(timeoutMillis);
-        printf("result %d\n", result);
     }
 }
 
 int NativeLooper::pollInner(int timeoutMillis) 
 {
-    printf("pollInner\n");
+    printf("NativeLooper::pollInner -> %d\n", timeoutMillis);
     if (timeoutMillis != 0 && mNextMessageUptime != LLONG_MAX)
     {
-        printf("timeoutMillis != 0 && mNextMessageUptime != LLONG_MAX\n");
-        printf("timeoutMillis = %ld && mNextMessageUptime = %ld\n", timeoutMillis, mNextMessageUptime);
         nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
         int messageTimeoutMillis = toMillisecondTimeoutDelay(now, mNextMessageUptime);
         if (messageTimeoutMillis >= 0
                 && (timeoutMillis < 0 || messageTimeoutMillis < timeoutMillis)) {
             timeoutMillis = messageTimeoutMillis;
         }
-        printf("timeoutMillis = %ld\n", timeoutMillis);
     }
 
     // Poll.
@@ -118,9 +110,8 @@ int NativeLooper::pollInner(int timeoutMillis)
     mPolling = true;
 
     struct epoll_event eventItems[EPOLL_MAX_EVENTS];
-    printf("start epoll_wait -> %ld\n", timeoutMillis);
+    printf("start epoll_wait -> %d\n", timeoutMillis);
     int eventCount = epoll_wait(mEpollFd, eventItems, EPOLL_MAX_EVENTS, timeoutMillis);
-    printf("end epoll_wait -> %d\n", eventCount);
 
     // Acquire lock.
     mLock.lock();

@@ -17,7 +17,6 @@ Message::~Message()
 
 Message* Message::obtain()
 {
-    printf("obtain()\n");
     std::lock_guard<std::mutex> lock(sPoolSync);
     if (sPool != nullptr)
     {
@@ -37,6 +36,7 @@ Message* Message::obtain(Message* orig)
     m->arg1 = orig->arg1;
     m->arg2 = orig->arg2;
     m->obj = orig->obj;
+    m->deletor = orig->deletor;
     m->what = orig->what;
     m->target = orig->target;
 
@@ -44,7 +44,6 @@ Message* Message::obtain(Message* orig)
 }
 Message* Message::obtain(Handler* h)
 {
-    printf("obtain(Handler*)\n");
     Message* m = obtain();
     m->target = h;
     return m;
@@ -56,12 +55,33 @@ Message* Message::obtain(Handler* h, int what)
     m->what = what;
     return m;
 }
-Message* Message::obtain(Handler* h, int what, void* obj)
+Message* Message::obtain(Handler* h, int what, void* obj, ObjDeletor deletor)
 {
     Message* m = obtain();
     m->target = h;
     m->what = what;
     m->obj = obj;
+    m->deletor = deletor;
+    return m;
+}
+Message* Message::obtain(Handler* h, int what, int arg1, int arg2)
+{
+    Message* m = obtain();
+    m->target = h;
+    m->what = what;
+    m->arg1 = arg1;
+    m->arg2 = arg2;
+    return m;
+}
+Message* Message::obtain(Handler* h, int what, int arg1, int arg2, void* obj, ObjDeletor deletor)
+{
+    Message* m = obtain();
+    m->target = h;
+    m->what = what;
+    m->arg1 = arg1;
+    m->arg2 = arg2;
+    m->obj = obj;
+    m->deletor = deletor;
     return m;
 }
 
@@ -83,11 +103,12 @@ bool Message::recycleUnchecked()
     what = 0;
     arg1 = 0;
     arg2 = 0;
-    if (obj)
+    if (obj && deletor)
     {
-        delete obj;
+        deletor(obj);
     }
     obj = nullptr;
+    deletor = nullptr;
     when = 0;
     target = nullptr;
 
@@ -105,4 +126,13 @@ bool Message::recycleUnchecked()
             return false;
         }
     }
+}
+
+void Message::recycle()
+{
+    if (isInUse())
+    {
+        if (gCheckRecycle) return;
+    }
+    recycleUnchecked();
 }

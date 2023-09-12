@@ -20,14 +20,26 @@ public:
     virtual void handleMessage(Message* msg);
     void dispatchMessage(Message* msg);
 
+    Message* obtainMessage();
+    Message* obtainMessage(int what);
+    Message* obtainMessage(int what, void* obj, Message::ObjDeletor deletor);
+    Message* obtainMessage(int what, int arg1, int arg2);
+    Message* obtainMessage(int what, int arg1, int arg2, void* obj, Message::ObjDeletor deletor);
+
     bool sendMessage(Message* msg);
-    bool sendMessageDelay(Message* msg, long delay);
+    bool sendMessageDelayed(Message* msg, long delay);
     bool sendMessageAtTime(Message* msg, long uptimeMillis);
-    // bool sendEmptyMessage(int what);
-    // bool sendEmptyMessageDelay(int what, long delay);
+    bool sendMessageAtFrontOfQueue(Message* msg);
+    bool executeOrSendMessage(Message* msg);
+
+    bool sendEmptyMessage(int what);
+    bool sendEmptyMessageDelayed(int what, long delay);
+    bool sendEmptyMessageAtTime(int what, long uptimeMillis);
 
     void removeMessages(int what);
+    void removeMessages(int what, void* obj);
     bool hasMessages(int what);
+    bool hasMessages(int what, void* obj);
 
     Looper* getLooper();
 

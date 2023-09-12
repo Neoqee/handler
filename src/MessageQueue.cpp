@@ -5,7 +5,6 @@
 
 long MessageQueue::nativeInit()
 {
-    printf("nativeInit()\n");
     NativeMessageQueue* nativeMessageQueue = new NativeMessageQueue();
     if (!nativeMessageQueue)
     {
@@ -20,13 +19,11 @@ void MessageQueue::nativeDestory(long ptr)
 }
 void MessageQueue::nativePollOnce(long ptr, int timeoutMillis)
 {
-    printf("nativePollOnce -> %d\n", timeoutMillis);
     NativeMessageQueue* nativeMessageQueue = reinterpret_cast<NativeMessageQueue*>(ptr);
     nativeMessageQueue->pollOnce(timeoutMillis);
 }
 void MessageQueue::nativeWake(long ptr)
 {
-    printf("nativeWake()\n");
     NativeMessageQueue* nativeMessageQueue = reinterpret_cast<NativeMessageQueue*>(ptr);
     nativeMessageQueue->wake();
 }
@@ -39,7 +36,6 @@ bool MessageQueue::nativeIsPolling(long ptr)
 
 MessageQueue::MessageQueue(bool quitAllowed): mQuitAllowed(quitAllowed)
 {
-    printf("MessageQueue()\n");
     mPtr = nativeInit();
 }
 
@@ -67,7 +63,6 @@ bool MessageQueue::isPolling()
 
 Message* MessageQueue::next()
 {
-    printf("next\n");
     const long ptr = mPtr;
     int nextPollTimeoutMillis = 0;
     int count = 5;
@@ -79,7 +74,6 @@ Message* MessageQueue::next()
             return nullptr;
         }
         nativePollOnce(ptr, nextPollTimeoutMillis);
-        printf("nativePollOnce finish\n");
         {
             std::lock_guard<std::mutex> lock(mClassLock);
             const long now = SystemClock::uptimeMillis();
@@ -104,7 +98,6 @@ Message* MessageQueue::next()
                     }
                     msg->next = nullptr;
                     msg->markInUse();
-                    printf("1 - mBlock = %d\n", mBlocked);
                     return msg;
                 }
             }
@@ -120,7 +113,6 @@ Message* MessageQueue::next()
             }
 
             mBlocked = true;
-            printf("2 - mBlock = %d\n", mBlocked);
 
 
         }
@@ -153,10 +145,8 @@ void MessageQueue::quit(bool safe)
 
 bool MessageQueue::enqueueMessage(Message* msg, long when)
 {
-    printf("MessageQueue::enqueueMessage()\n");
     if (msg->target == nullptr) return false;
     if (msg->isInUse()) return false;
-    printf("...\n");
     {
         std::lock_guard<std::mutex> lock(mClassLock);
         if (mQuitting)
@@ -171,16 +161,12 @@ bool MessageQueue::enqueueMessage(Message* msg, long when)
         bool needWake;
         if (p == nullptr || when == 0 || when < p->when)
         {
-            printf("p == nullptr || when == 0 || when < p->when\n");
-            printf("insert first\n");
             msg->next = p;
             mMessages = msg;
             needWake = mBlocked;
-            printf("needWake = %d\n", needWake);
         }
         else 
         {
-            printf("push back last\n");
             needWake = mBlocked && p->target == nullptr;
             Message* prev;
             for (;;)
@@ -196,7 +182,6 @@ bool MessageQueue::enqueueMessage(Message* msg, long when)
                     needWake = false;
                 }
             }
-            printf("needWake = %d\n", needWake);
             msg->next = p;
             prev->next = msg;
         }
