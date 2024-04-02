@@ -14,6 +14,7 @@ public:
 public:
     // Handler();
     Handler(Looper* looper, Callback callback);
+    ~Handler();
 
     virtual void handleMessage(Message* msg);
     void dispatchMessage(Message* msg);

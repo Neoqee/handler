@@ -14,9 +14,6 @@ public:
 
     void pollOnce(int timeoutMillis);
     void wake();
-    void setFileDescriptorEvents(int fd, int events);
-
-    virtual int handleEvent(int fd, int events, void* data);
 protected:
     NativeLooper* mLooper;
 };

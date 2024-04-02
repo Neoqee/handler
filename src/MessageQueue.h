@@ -33,11 +33,12 @@ private:
     static bool nativeIsPolling(long ptr);
 
     void dispose();
-    bool isPolling();
 
+    bool isPolling();
     void quit(bool safe);
 
-    
+    void removeAllMessageLocked();
+    void removeAllFutureMessagesLocked();
     
 };
 

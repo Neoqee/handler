@@ -3,12 +3,22 @@
 #include "Looper.h"
 #include "MessageQueue.h"
 #include "Timer.h"
+#include "Log.h"
 
 Handler::Handler(Looper* looper, Callback callback)
 {
     mLooper = looper;
     mQueue = looper->getQueue();
     mCallback = callback;
+    LOG_I("Handler#%x, mLooper#%x, mQueue#%x, mCallback#%x\n", this, mLooper, mQueue, mCallback);
+}
+
+Handler::~Handler()
+{
+    LOG_I("~Handler#%x\n", this);
+    mLooper = nullptr;
+    mQueue = nullptr;
+    mCallback = nullptr;
 }
 
 void Handler::dispatchMessage(Message* msg)

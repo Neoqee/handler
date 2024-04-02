@@ -1,5 +1,6 @@
 #include "Message.h"
 #include "Handler.h"
+#include "Log.h"
 
 std::mutex sPoolSync;
 Message* Message::sPool = nullptr;
@@ -17,10 +18,12 @@ Message::Message()
     target = nullptr;
     when = 0;
     next = nullptr;
+
+    LOG_I("Message#%x\n", this);
 }
 Message::~Message()
 {
-
+    LOG_I("~Message#%x\n", this);
 }
 
 Message* Message::obtain()
@@ -136,11 +139,15 @@ bool Message::recycleUnchecked()
     }
 }
 
-void Message::recycle()
+void Message::recycle(Message* m)
 {
-    if (isInUse())
+    if (m->isInUse())
     {
         if (gCheckRecycle) return;
     }
-    recycleUnchecked();
+    if (!m->recycleUnchecked())
+    {
+        delete m;
+        m = nullptr;
+    }
 }

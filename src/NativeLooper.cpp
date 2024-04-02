@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/eventfd.h>
 #include <string.h>
+#include "Log.h"
 
 NativeLooper::NativeLooper()
     : mPolling(false),
@@ -13,71 +14,18 @@ NativeLooper::NativeLooper()
 
     std::lock_guard<std::mutex> lock(mLock);
     rebuildEpollLocked();
+
+    LOG_I("NativeLooper#%x, mWakeEventFd#%d, mEpollFd#%d\n", this, mWakeEventFd, mEpollFd);
 }
 
 NativeLooper::~NativeLooper()
 {
-
+    LOG_I("~NativeLooper#%x, mWakeEventFd#%d, mEpollFd#%d\n", this, mWakeEventFd, mEpollFd);
 }
 
 static const int EPOLL_MAX_EVENTS = 16;
 
-static pthread_once_t gTLSOnce = PTHREAD_ONCE_INIT;
-static pthread_key_t gTLSKey = 0;
-
-void NativeLooper::initTLSKey() {
-    int error = pthread_key_create(&gTLSKey, threadDestructor);
-    // LOG_ALWAYS_FATAL_IF(error != 0, "Could not allocate TLS key: %s", strerror(error));
-}
-
-void NativeLooper::threadDestructor(void *st) {
-    // NativeLooper* self = static_cast<NativeLooper*>(st);
-    // if (self != nullptr) {
-    //     self->decStrong((void*)threadDestructor);
-    // }
-    // if (self != nullptr)
-    // {
-    //     delete self;
-    // }
-}
-
-void NativeLooper::setForThread(NativeLooper* looper) {
-    NativeLooper* old = getForThread(); // also has side-effect of initializing TLS
-
-    // if (looper != nullptr) {
-    //     looper->incStrong((void*)threadDestructor);
-    // }
-
-    pthread_setspecific(gTLSKey, looper);
-
-    if (old != nullptr) {
-        // old->decStrong((void*)threadDestructor);
-        delete old;
-    }
-}
-
-NativeLooper* NativeLooper::getForThread() {
-    int result = pthread_once(& gTLSOnce, initTLSKey);
-    // LOG_ALWAYS_FATAL_IF(result != 0, "pthread_once failed");
-
-    return (NativeLooper*)pthread_getspecific(gTLSKey);
-}
-
-NativeLooper* NativeLooper::prepare(int opts) {
-    bool allowNonCallbacks = opts & PREPARE_ALLOW_NON_CALLBACKS;
-    NativeLooper* looper = NativeLooper::getForThread();
-    if (looper == nullptr) {
-        looper = new NativeLooper();
-        NativeLooper::setForThread(looper);
-    }
-    // if (looper->getAllowNonCallbacks() != allowNonCallbacks) {
-    //     ALOGW("Looper already prepared for this thread with a different value for the "
-    //             "LOOPER_PREPARE_ALLOW_NON_CALLBACKS option.");
-    // }
-    return looper;
-}
-
-int NativeLooper::pollOnce(int timeoutMillis, int* outFd, int* outEvents, void** outData)
+int NativeLooper::pollOnce(int timeoutMillis)
 {
     int result = 0;
     for (;;)

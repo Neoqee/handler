@@ -2,6 +2,7 @@
 #include "pthread.h"
 #include <exception>
 #include <iostream>
+#include "Log.h"
 
 static pthread_once_t _gTLSOnce = PTHREAD_ONCE_INIT;
 static pthread_key_t _gTLSKey = 0;
@@ -10,6 +11,7 @@ Looper* _gLooper = nullptr;
 Looper::Looper(bool quitAllowed)
 {
     mQueue = new MessageQueue(quitAllowed);
+    LOG_I("Looper#%x, mQueue#%x\n", this, mQueue);
 }
 
 void Looper::initTLSKey()
@@ -27,14 +29,12 @@ void Looper::initTLSKey()
 
 void Looper::threadDestructor(void *st) {
     printf("Looper::threadDestructor\n");
-    // NativeLooper* self = static_cast<NativeLooper*>(st);
-    // if (self != nullptr) {
-    //     self->decStrong((void*)threadDestructor);
-    // }
-    // if (self != nullptr)
-    // {
-    //     delete self;
-    // }
+    if (st != nullptr)
+    {
+        Looper* self = static_cast<Looper*>(st);
+        delete self;
+        self = nullptr;
+    }
 }
 
 void Looper::prepare()

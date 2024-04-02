@@ -28,7 +28,7 @@ private:
     // static std::mutex sPoolSync;
     static Message* sPool;
     static int sPoolSize;
-    static const int MAX_POOL_SIZE = 50;
+    static const int MAX_POOL_SIZE = 0;
     static bool gCheckRecycle;
 
     
@@ -49,7 +49,7 @@ public:
     void markInUse();
     bool isInUse();
     bool recycleUnchecked();
-    void recycle();
+    static void recycle(Message* m);
 
 
 };

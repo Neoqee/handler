@@ -2,6 +2,7 @@
 #include "Timer.h"
 #include "math.h"
 #include "NativeMessageQueue.h"
+#include "Log.h"
 
 long MessageQueue::nativeInit()
 {
@@ -40,18 +41,24 @@ MessageQueue::MessageQueue(bool quitAllowed): mQuitAllowed(quitAllowed)
     mMessages = nullptr;
     mQuitting = false;
     mBlocked = false;
+    LOG_I("MessageQueue#%x, mPtr#%x\n", this, mPtr);
 }
 
 MessageQueue::~MessageQueue()
 {
-    
+    LOG_I("~MessageQueue#%x, mPtr#%x\n", this, mPtr);
+    dispose();
 }
 
 void MessageQueue::dispose()
 {
     try
     {
-        nativeDestory(mPtr);
+        if (mPtr != 0)
+        {
+            nativeDestory(mPtr);
+            mPtr = 0;
+        }
     }
     catch(...)
     {
@@ -67,20 +74,17 @@ bool MessageQueue::isPolling()
 Message* MessageQueue::next()
 {
     const long ptr = mPtr;
+    if (ptr == 0)
+    {
+        return nullptr;
+    }
     int nextPollTimeoutMillis = 0;
-    int count = 5;
     for (;;)
     {
-        count--;
-        if (count == 0)
-        {
-            return nullptr;
-        }
         nativePollOnce(ptr, nextPollTimeoutMillis);
         {
             std::lock_guard<std::mutex> lock(mClassLock);
             const long now = SystemClock::uptimeMillis();
-            Message* prevMsg = nullptr;
             Message* msg = mMessages;
             if (msg != nullptr)
             {
@@ -91,14 +95,7 @@ Message* MessageQueue::next()
                 else 
                 {
                     mBlocked = false;
-                    if (prevMsg != nullptr)
-                    {
-                        prevMsg->next = msg->next;
-                    }
-                    else 
-                    {
-                        mMessages = msg->next;
-                    }
+                    mMessages = msg->next;
                     msg->next = nullptr;
                     msg->markInUse();
                     return msg;
@@ -116,12 +113,7 @@ Message* MessageQueue::next()
             }
 
             mBlocked = true;
-
-
         }
-
-        // nextPollTimeoutMillis = 0;
-
     }
 }
 
@@ -136,14 +128,63 @@ void MessageQueue::quit(bool safe)
 
     if (safe)
     {
-
+        removeAllFutureMessagesLocked();
     }
     else 
     {
-
+        removeAllMessageLocked();
     }
 
     nativeWake(mPtr);
+}
+
+void MessageQueue::removeAllMessageLocked()
+{
+    Message* p = mMessages;
+    while (p != nullptr)
+    {
+        Message* n = p->next;
+        Message::recycle(p);
+        p = n;
+    }
+    mMessages = nullptr;
+}   
+
+void MessageQueue::removeAllFutureMessagesLocked()
+{
+    long now = SystemClock::uptimeMillis();
+    Message* p = mMessages;
+    if (p != nullptr) 
+    {
+        if (p->when> now)
+        {
+            removeAllMessageLocked();
+        }
+        else 
+        {
+            Message* n;
+            for (;;)
+            {
+                n = p->next;
+                if (n == nullptr)
+                {
+                    return;
+                }
+                if (n->when > now)
+                {
+                    break;
+                }
+                p = n;
+            }
+            p->next = nullptr;
+            do
+            {
+                p = n;
+                n = p->next;
+                Message::recycle(p);
+            } while(n != nullptr);
+        }
+    }
 }
 
 bool MessageQueue::enqueueMessage(Message* msg, long when)
@@ -154,7 +195,7 @@ bool MessageQueue::enqueueMessage(Message* msg, long when)
         std::lock_guard<std::mutex> lock(mClassLock);
         if (mQuitting)
         {
-            // msg.recycle();
+            Message::recycle(msg);
             return false;
         }
 
@@ -226,7 +267,7 @@ void MessageQueue::removeMessages(Handler* h, int what, void* object)
     {
         Message* n = p->next;
         mMessages = n;
-        // p->recycleUnchecked();
+        Message::recycle(p);
         p = n;
     }
 
@@ -239,7 +280,7 @@ void MessageQueue::removeMessages(Handler* h, int what, void* object)
                 && (object == nullptr || n->obj == object))
             {
                 Message* nn = n->next;
-                // n->recycleUnchecked();
+                Message::recycle(n);
                 p->next = nn;
                 continue;
             }

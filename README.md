@@ -41,3 +41,25 @@ int main(int argc, char const *argv[])
     return 0;
 }
 ```
+
+## 加锁情况
+
+1. Handler 无锁
+
+2. Message
+
+- obtain() 函数
+- recycleUnchecked() 函数
+
+3. MessageQueue
+
+- isPolling()
+- next()
+- quit()
+- enqueueMessages(Message* msg, long when)
+- hasMessages(Handler* h, int what, void* object)
+- removeMessages(Handler* h, int what, void* object)
+
+## 异常情况
+
+暂时没有对异常进行处理

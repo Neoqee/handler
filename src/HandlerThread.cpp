@@ -3,11 +3,13 @@
 #include "Looper.h"
 #include "pthread.h"
 #include "unistd.h"
+#include "Log.h"
 
 void* threadFunc(void *ptr)
 {
     HandlerThread* pHT = (HandlerThread*)ptr;
     pHT->run();
+    return nullptr;
 }
 
 HandlerThread::HandlerThread()
@@ -15,14 +17,17 @@ HandlerThread::HandlerThread()
     mLooper = nullptr;
     mPid = 0;
     mStarted = false;
+    LOG_I("HandlerThread#%x\n", this);
 }
 HandlerThread::~HandlerThread()
 {
+    LOG_I("~HandlerThread#%x\n", this);
     mLooper = nullptr;
 }
 
 void HandlerThread::run()
 {
+    LOG_I("HandlerThread%x in Thread#%x\n", this, pthread_self());
     // mPid = pthread_self();
     Looper::prepare();
     mLooper = Looper::myLooper();
