@@ -1,10 +1,8 @@
 #ifndef __NEOQEE_HANDLER_H__
 #define __NEOQEE_HANDLER_H__
 
-// #include "MessageQueue.h"
 #include <functional>
 #include "Message.h"
-// #include "Looper.h"
 
 class Looper;
 class MessageQueue;

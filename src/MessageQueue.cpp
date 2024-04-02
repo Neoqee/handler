@@ -37,6 +37,9 @@ bool MessageQueue::nativeIsPolling(long ptr)
 MessageQueue::MessageQueue(bool quitAllowed): mQuitAllowed(quitAllowed)
 {
     mPtr = nativeInit();
+    mMessages = nullptr;
+    mQuitting = false;
+    mBlocked = false;
 }
 
 MessageQueue::~MessageQueue()

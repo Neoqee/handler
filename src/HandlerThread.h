@@ -1,4 +1,3 @@
-
 class Looper;
 class Handler;
 
@@ -18,7 +17,7 @@ public:
 private:
     Looper* mLooper;
     // Handler* mHandler;
-    pthread_t mPid;
+    unsigned long mPid;
     bool mStarted;
 
 };

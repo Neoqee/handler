@@ -8,6 +8,7 @@ set(INCLUDE_DIR
 
 set(SRC_FILES
     ${INCLUDE_DIR}/Handler.cpp
+    ${INCLUDE_DIR}/HandlerThread.cpp
     ${INCLUDE_DIR}/Looper.cpp
     ${INCLUDE_DIR}/Message.cpp
     ${INCLUDE_DIR}/MessageQueue.cpp

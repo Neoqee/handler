@@ -8,7 +8,15 @@ bool Message::gCheckRecycle = false;
 
 Message::Message()
 {
-
+    what = 0;
+    arg1 = 0;
+    arg2 = 0;
+    obj = nullptr;
+    deletor = nullptr;
+    flags = 0;
+    target = nullptr;
+    when = 0;
+    next = nullptr;
 }
 Message::~Message()
 {

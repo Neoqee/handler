@@ -6,8 +6,10 @@
 #include <stdio.h>
 #include "pthread.h"
 #include <iostream>
+#include "HandlerThread.h"
 
 Handler* mHandler = nullptr;
+HandlerThread* mHandlerThread = nullptr;
 
 bool handleMessage(Message* msg)
 {
@@ -74,9 +76,14 @@ int main(int argc, char const *argv[])
     // std::thread newThread(init, nullptr);
     // newThread.detach();
     // std::this_thread::sleep_for(std::chrono::milliseconds(2000)); 
-    pthread_t pid;
-    pthread_create(&pid, nullptr, init, nullptr);
-    pthread_detach(pid);
+    // pthread_t pid;
+    // pthread_create(&pid, nullptr, init, nullptr);
+    // pthread_detach(pid);
+
+    
+    mHandlerThread = new HandlerThread();
+    mHandlerThread->start();
+    mHandler = new Handler(mHandlerThread->getLooper(), handleMessage);
     
     auto startTime = SystemClock::uptimeMillis();
     std::this_thread::sleep_for(std::chrono::seconds(3));

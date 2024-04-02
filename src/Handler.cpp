@@ -9,7 +9,6 @@ Handler::Handler(Looper* looper, Callback callback)
     mLooper = looper;
     mQueue = looper->getQueue();
     mCallback = callback;
-    Message* msg;
 }
 
 void Handler::dispatchMessage(Message* msg)

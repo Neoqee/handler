@@ -12,6 +12,7 @@ void* threadFunc(void *ptr)
 
 HandlerThread::HandlerThread()
 {
+    mLooper = nullptr;
     mPid = 0;
     mStarted = false;
 }
@@ -22,7 +23,7 @@ HandlerThread::~HandlerThread()
 
 void HandlerThread::run()
 {
-    mPid = pthread_self();
+    // mPid = pthread_self();
     Looper::prepare();
     mLooper = Looper::myLooper();
     Looper::loop();
