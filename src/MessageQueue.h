@@ -18,6 +18,8 @@ public:
 
     Message* next();
 
+    void quit(bool safe);
+
 private:
     const bool mQuitAllowed;
     long mPtr;
@@ -35,7 +37,6 @@ private:
     void dispose();
 
     bool isPolling();
-    void quit(bool safe);
 
     void removeAllMessageLocked();
     void removeAllFutureMessagesLocked();

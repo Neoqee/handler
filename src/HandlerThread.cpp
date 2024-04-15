@@ -64,3 +64,25 @@ Looper* HandlerThread::getLooper()
 //     }
 //     return mHandler;
 // }
+
+bool HandlerThread::quit()
+{
+    Looper* looper = getLooper();
+    if (looper != nullptr)
+    {
+        looper->quit();
+        return true;
+    }
+    return false;
+}
+
+bool HandlerThread::quitSafely()
+{
+    Looper* looper = getLooper();
+    if (looper != nullptr)
+    {
+        looper->quitSafely();
+        return true;
+    }
+    return false;
+}

@@ -6,10 +6,16 @@
 class Looper
 {
 public:
+
+    ~Looper();
+
     inline MessageQueue* getQueue()
     {
         return mQueue;
     }
+
+    void quit();
+    void quitSafely();
 
     static void prepare();
     static void loop();
@@ -18,7 +24,7 @@ public:
     static void initTLSKey();
     static void threadDestructor(void *st);
 
-
+    
 private:
     Looper(bool quitAllowed);
 

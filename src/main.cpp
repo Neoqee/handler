@@ -97,11 +97,19 @@ int main(int argc, char const *argv[])
 
     // testDelete();
 
-    for(;;) { 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000)); 
-        // Message* msg1 = Message::obtain(mHandler, 1);
-        // mHandler->sendMessageDelay(msg1, 5000);
-    }
+    // for(;;) { 
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(10000)); 
+    //     // Message* msg1 = Message::obtain(mHandler, 1);
+    //     // mHandler->sendMessageDelay(msg1, 5000);
+    // }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000)); 
+    mHandlerThread->quitSafely();
+    delete mHandlerThread;
+    mHandlerThread = nullptr;
+    delete mHandler;
+    mHandler = nullptr;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000)); 
 
     return 0;
 }

@@ -14,6 +14,24 @@ Looper::Looper(bool quitAllowed)
     LOG_I("Looper#%x, mQueue#%x\n", this, mQueue);
 }
 
+Looper::~Looper()
+{
+    LOG_I("~Looper#%x, mQueue#%x\n", this, mQueue);
+    delete mQueue;
+    mQueue = nullptr;
+}
+
+void Looper::quit()
+{
+    mQueue->quit(false);
+}
+
+void Looper::quitSafely()
+{
+    mQueue->quit(true);
+}
+
+
 void Looper::initTLSKey()
 {
     try
@@ -27,7 +45,8 @@ void Looper::initTLSKey()
     
 }
 
-void Looper::threadDestructor(void *st) {
+void Looper::threadDestructor(void *st) 
+{
     printf("Looper::threadDestructor\n");
     if (st != nullptr)
     {

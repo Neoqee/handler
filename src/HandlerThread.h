@@ -13,6 +13,8 @@ public:
     // Handler* getThreadHandler();
     virtual void run();
     
+    bool quit();
+    bool quitSafely();
 
 private:
     Looper* mLooper;
